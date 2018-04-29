@@ -3,6 +3,7 @@ package com.zl.ndkaudioplayer;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Keep;
+import android.util.Log;
 import android.widget.TextView;
 
 /**
@@ -25,6 +26,7 @@ import android.widget.TextView;
  * @see <a href="https://github.com/androidthings/contrib-drivers#readme">https://github.com/androidthings/contrib-drivers#readme</a>
  */
 public class MainActivity extends Activity {
+    private static final String TAG = "MainActivity";
 
     int hour = 0;
     int minute = 0;
@@ -45,14 +47,16 @@ public class MainActivity extends Activity {
         hour = minute = second = 0;
         TextView tv = (TextView) findViewById(R.id.sample_text);
         tv.setText(stringFromJNI());
+        Log.e(TAG, "MainActivity.onResume: ===lizhi onResume");
         startTicks();
+        Log.e(TAG, "MainActivity.onResume: ===lizhi onResume finished");
     }
 
-    @Override
-    public void onPause () {
-        super.onPause();
-        StopTicks();
-    }
+    // @Override
+    // public void onPause () {
+    //     super.onPause();
+    //     StopTicks();
+    // }
 
     /*
      * A function calling from JNI to update current timer

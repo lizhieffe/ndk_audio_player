@@ -3,6 +3,7 @@
 #include <jni.h>
 #include <android/log.h>
 #include <assert.h>
+#include <stdio.h>
 #include <string>
 #include <cstring>
 
@@ -97,6 +98,7 @@ void queryRuntimeInfo(JNIEnv *env, jobject instance) {
  *     the pairing function JNI_OnUnload() never gets called at all.
  */
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
+    printf("===lizhi %s\n", __FUNCTION__);
     JNIEnv* env;
     memset(&g_ctx, 0, sizeof(g_ctx));
 
@@ -105,11 +107,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
         return JNI_ERR; // JNI version not supported.
     }
 
-    jclass  clz = (*env).FindClass(
-                                    "com/zl/ndkaudioplayer/JniHandler");
-    // ===lizhi
-    // g_ctx.jniHelperClz = (*env).NewGlobalRef(clz);
-    g_ctx.jniHelperClz = clz;
+    jclass  clz = (*env).FindClass("com/zl/ndkaudioplayer/JniHandler");
+    g_ctx.jniHelperClz = (jclass)env->NewGlobalRef(clz);
 
     jmethodID  jniHelperCtor = (*env).GetMethodID(g_ctx.jniHelperClz,
                                                    "<init>", "()V");
@@ -211,6 +210,7 @@ void*  UpdateTicks(void* context) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_zl_ndkaudioplayer_MainActivity_startTicks(JNIEnv *env, jobject instance) {
+    printf("===lizhi in c: %s\n", __FUNCTION__);
     pthread_t       threadInfo_;
     pthread_attr_t  threadAttr_;
 
@@ -220,10 +220,8 @@ Java_com_zl_ndkaudioplayer_MainActivity_startTicks(JNIEnv *env, jobject instance
     pthread_mutex_init(&g_ctx.lock, NULL);
 
     jclass clz = (*env).GetObjectClass(instance);
-    // ===lizhi
-    // g_ctx.mainActivityClz = (*env).NewGlobalRef(clz);
-    g_ctx.mainActivityClz = clz;
-    g_ctx.mainActivityObj = (*env).NewGlobalRef(instance);
+    g_ctx.mainActivityClz = (jclass)env->NewGlobalRef(clz);
+    g_ctx.mainActivityObj = env->NewGlobalRef(instance);
 
     int result  = pthread_create( &threadInfo_, &threadAttr_, UpdateTicks, &g_ctx);
     assert(result == 0);
