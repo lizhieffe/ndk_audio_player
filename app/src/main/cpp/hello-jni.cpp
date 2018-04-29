@@ -3,7 +3,6 @@
 
 extern "C"
 JNIEXPORT jstring
-
 JNICALL
 Java_com_zl_ndkaudioplayer_MainActivity_stringFromJNI(
         JNIEnv *env,
