@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tickView = (TextView)findViewById(R.id.tick_view);
+        tickView = findViewById(R.id.tick_view);
     }
 
     @Override
@@ -47,16 +47,14 @@ public class MainActivity extends Activity {
         hour = minute = second = 0;
         TextView tv = (TextView) findViewById(R.id.sample_text);
         tv.setText(stringFromJNI());
-        Log.e(TAG, "MainActivity.onResume: ===lizhi onResume");
         startTicks();
-        Log.e(TAG, "MainActivity.onResume: ===lizhi onResume finished");
     }
 
-    // @Override
-    // public void onPause () {
-    //     super.onPause();
-    //     StopTicks();
-    // }
+    @Override
+    public void onPause () {
+        super.onPause();
+        StopTicks();
+    }
 
     /*
      * A function calling from JNI to update current timer

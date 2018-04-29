@@ -98,7 +98,7 @@ void queryRuntimeInfo(JNIEnv *env, jobject instance) {
  *     the pairing function JNI_OnUnload() never gets called at all.
  */
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
-    printf("===lizhi %s\n", __FUNCTION__);
+    LOGI("===lizhi %s\n", __FUNCTION__);
     JNIEnv* env;
     memset(&g_ctx, 0, sizeof(g_ctx));
 
@@ -210,7 +210,7 @@ void*  UpdateTicks(void* context) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_zl_ndkaudioplayer_MainActivity_startTicks(JNIEnv *env, jobject instance) {
-    printf("===lizhi in c: %s\n", __FUNCTION__);
+    LOGI("===lizhi: %s\n", __FUNCTION__);
     pthread_t       threadInfo_;
     pthread_attr_t  threadAttr_;
 
