@@ -73,5 +73,4 @@ public class ClockController {
     public native String stringFromJNINative();
     public native void startTicksNative();
     public native void stopTicksNative();
-
 }
