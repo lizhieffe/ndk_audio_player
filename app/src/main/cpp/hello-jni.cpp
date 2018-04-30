@@ -21,8 +21,8 @@ typedef struct tick_context {
     JavaVM  *javaVM;
     jclass   jniHelperClz;
     jobject  jniHelperObj;
-    jclass   mainActivityClz;
-    jobject  mainActivityObj;
+    jclass   clockControllerClz;
+    jobject  clockControllerObj;
     pthread_mutex_t  lock;
     int      done;
 } TickContext;
@@ -31,7 +31,7 @@ TickContext g_ctx;
 extern "C"
 JNIEXPORT jstring
 JNICALL
-Java_com_zl_ndkaudioplayer_MainActivity_stringFromJNI(
+Java_com_zl_ndkaudioplayer_ClockController_stringFromJNINative(
         JNIEnv *env,
         jobject /* this */) {
     std::string hello = "Hello from C++";
@@ -120,7 +120,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     queryRuntimeInfo(env, g_ctx.jniHelperObj);
 
     g_ctx.done = 0;
-    g_ctx.mainActivityObj = NULL;
+    g_ctx.clockControllerObj = NULL;
     return  JNI_VERSION_1_6;
 }
 
@@ -138,7 +138,7 @@ void   sendJavaMsg(JNIEnv *env, jobject instance,
 
 /*
  * Main working thread function. From a pthread,
- *     calling back to MainActivity::updateTimer() to display ticks on UI
+ *     calling back to ClockController::updateTimer() to display ticks on UI
  *     calling back to JniHelper::updateStatus(String msg) for msg
  */
 void*  UpdateTicks(void* context) {
@@ -160,8 +160,8 @@ void*  UpdateTicks(void* context) {
     sendJavaMsg(env, pctx->jniHelperObj, statusId,
                 "TickerThread status: initializing...");
 
-    // get mainActivity updateTimer function
-    jmethodID timerId = (*env).GetMethodID(pctx->mainActivityClz,
+    // get ClockController updateTimer function
+    jmethodID timerId = (*env).GetMethodID(pctx->clockControllerClz,
                                             "updateTimer", "()V");
 
     struct timeval beginTime, curTime, usedTime, leftTime;
@@ -183,7 +183,7 @@ void*  UpdateTicks(void* context) {
         if (done) {
             break;
         }
-        (*env).CallVoidMethod(pctx->mainActivityObj, timerId);
+        (*env).CallVoidMethod(pctx->clockControllerObj, timerId);
 
         // Sleep for 1 second.
         gettimeofday(&curTime, NULL);
@@ -212,7 +212,7 @@ void*  UpdateTicks(void* context) {
  */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_zl_ndkaudioplayer_MainActivity_startTicks(JNIEnv *env, jobject instance) {
+Java_com_zl_ndkaudioplayer_ClockController_startTicksNative(JNIEnv *env, jobject instance) {
     LOGI("===lizhi: %s\n", __FUNCTION__);
     pthread_t       threadInfo_;
     pthread_attr_t  threadAttr_;
@@ -223,8 +223,8 @@ Java_com_zl_ndkaudioplayer_MainActivity_startTicks(JNIEnv *env, jobject instance
     pthread_mutex_init(&g_ctx.lock, NULL);
 
     jclass clz = (*env).GetObjectClass(instance);
-    g_ctx.mainActivityClz = (jclass)env->NewGlobalRef(clz);
-    g_ctx.mainActivityObj = env->NewGlobalRef(instance);
+    g_ctx.clockControllerClz = (jclass)env->NewGlobalRef(clz);
+    g_ctx.clockControllerObj = env->NewGlobalRef(instance);
 
     int result  = pthread_create(&threadInfo_, &threadAttr_, UpdateTicks, &g_ctx);
     assert(result == 0);
@@ -241,7 +241,7 @@ Java_com_zl_ndkaudioplayer_MainActivity_startTicks(JNIEnv *env, jobject instance
  */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_zl_ndkaudioplayer_MainActivity_StopTicks(JNIEnv *env, jobject instance) {
+Java_com_zl_ndkaudioplayer_ClockController_stopTicksNative(JNIEnv *env, jobject instance) {
     pthread_mutex_lock(&g_ctx.lock);
     g_ctx.done = 1;
     pthread_mutex_unlock(&g_ctx.lock);
@@ -255,10 +255,10 @@ Java_com_zl_ndkaudioplayer_MainActivity_StopTicks(JNIEnv *env, jobject instance)
     }
 
     // release object we allocated from StartTicks() function
-    (*env).DeleteGlobalRef(g_ctx.mainActivityClz);
-    (*env).DeleteGlobalRef(g_ctx.mainActivityObj);
-    g_ctx.mainActivityObj = NULL;
-    g_ctx.mainActivityClz = NULL;
+    (*env).DeleteGlobalRef(g_ctx.clockControllerClz);
+    (*env).DeleteGlobalRef(g_ctx.clockControllerObj);
+    g_ctx.clockControllerObj = NULL;
+    g_ctx.clockControllerClz = NULL;
 
     pthread_mutex_destroy(&g_ctx.lock);
 }

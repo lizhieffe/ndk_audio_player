@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.Keep;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -16,15 +15,13 @@ public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
     private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1232;
 
-    int hour = 0;
-    int minute = 0;
-    int second = 0;
     TextView tickView;
 
     Button mRecordButton;
     Button mStopRecordButton;
     Button mPlayButton;
 
+    ClockController mClockController;
     AudioController mAudioController;
 
     @Override
@@ -34,63 +31,23 @@ public class MainActivity extends Activity {
 
         checkPermissions();
 
-        tickView = findViewById(R.id.tick_view);
-
+        initClockController();
         initAudioController();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        hour = minute = second = 0;
         TextView tv = findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
-        startTicks();
+        tv.setText(mClockController.stringFromJNI());
+        mClockController.startTicks();
     }
 
     @Override
     public void onPause () {
         super.onPause();
-        StopTicks();
+        mClockController.stopTicks();
     }
-
-    /*
-     * A function calling from JNI to update current timer
-     */
-    @Keep
-    private void updateTimer() {
-        ++second;
-        if(second >= 60) {
-            ++minute;
-            second -= 60;
-            if(minute >= 60) {
-                ++hour;
-                minute -= 60;
-            }
-        }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                String ticks = "" + MainActivity.this.hour + ":" +
-                        MainActivity.this.minute + ":" +
-                        MainActivity.this.second;
-                MainActivity.this.tickView.setText(ticks);
-            }
-        });
-    }
-
-    // Used to load the 'hello-jni' library on application startup.
-    static {
-        System.loadLibrary("hello-jni");
-    }
-
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
-    public native void startTicks();
-    public native void StopTicks();
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -146,6 +103,23 @@ public class MainActivity extends Activity {
                 // result of the request.
             }
         }
+    }
+
+    private void initClockController() {
+        tickView = findViewById(R.id.tick_view);
+
+        mClockController = new ClockController();
+        mClockController.addListener(new ClockController.Listener() {
+            @Override
+            public void onTimeUpdate(final String time) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        MainActivity.this.tickView.setText(time);
+                    }
+                });
+            }
+        });
     }
 
     private void initAudioController() {
