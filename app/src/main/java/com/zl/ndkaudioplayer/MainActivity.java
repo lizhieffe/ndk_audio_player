@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                audioController.stopRecording();
+                audioController.play();
             }
         });
     }

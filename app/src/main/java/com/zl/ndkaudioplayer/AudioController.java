@@ -1,9 +1,15 @@
 package com.zl.ndkaudioplayer;
 
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
+import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by lizhieffe on 4/29/18.
@@ -22,13 +28,18 @@ public class AudioController {
     private boolean mIsRecording = false;
     private int mBufferSize;
 
+    private List<Byte> mAudioStore;
+
     public AudioController() {
         mBufferSize = AudioRecord
                 .getMinBufferSize(RECORDER_SAMPLERATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING) * 2;
+        mAudioStore = new ArrayList<>();
     }
 
-    public void startRecording() {
+    synchronized public void startRecording() {
         Log.i(TAG, "startRecording");
+        mAudioStore.clear();
+
         if (!mIsRecording) {
             try {
                 mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORDER_SAMPLERATE,
@@ -56,13 +67,35 @@ public class AudioController {
 
     public void stopRecording() {
         Log.i(TAG, "stopRecording");
-        if (mIsRecording) {
-            mIsRecording = false;
+        synchronized (this) {
+            if (mIsRecording) {
+                mIsRecording = false;
+            }
         }
     }
 
     public void play() {
-        Log.i(TAG, "play");
+        Log.i(TAG, "playing recorded audio...");
+        int bufferSize = AudioTrack.getMinBufferSize(RECORDER_SAMPLERATE, AudioFormat.CHANNEL_OUT_MONO,
+                RECORDER_AUDIO_ENCODING);
+        AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, RECORDER_SAMPLERATE,
+                AudioFormat.CHANNEL_OUT_MONO, RECORDER_AUDIO_ENCODING, bufferSize, AudioTrack.MODE_STREAM);
+        audioTrack.play();
+
+        byte[] buffer = new byte[bufferSize];
+        int index = 0;
+        while (true) {
+            synchronized (this) {
+                if (index < mAudioStore.size()) {
+                    int i = 0;
+                    Arrays.fill(buffer, (byte) 0);
+                    while (index < mAudioStore.size() && i < buffer.length) {
+                        buffer[i++] = mAudioStore.get(index++);
+                    }
+                    audioTrack.write(buffer, 0, buffer.length);
+                }
+            }
+        }
     }
 
     private void fetchAudioData() {
@@ -76,6 +109,11 @@ public class AudioController {
             if (isRecording) {
                 mRecorder.read(sData, 0, shortArraySize);
                 byte bData[] = short2byte(sData);
+                for (int i = 0; i < bData.length; i++) {
+                    synchronized (this) {
+                        mAudioStore.add(bData[i]);
+                    }
+                }
                 Log.d(TAG, "fetchAudioData: fetched audio data");
             } else {
                 Log.i(TAG, "fetchAudioData: Stopping...");
