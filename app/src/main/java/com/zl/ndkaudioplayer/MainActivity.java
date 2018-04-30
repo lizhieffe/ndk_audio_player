@@ -21,11 +21,11 @@ public class MainActivity extends Activity {
     int second = 0;
     TextView tickView;
 
-    Button recordButton;
-    Button stopRecordButton;
-    Button playButton;
+    Button mRecordButton;
+    Button mStopRecordButton;
+    Button mPlayButton;
 
-    AudioController audioController;
+    AudioController mAudioController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,28 +36,7 @@ public class MainActivity extends Activity {
 
         tickView = findViewById(R.id.tick_view);
 
-        recordButton = findViewById(R.id.record_button);
-        stopRecordButton = findViewById(R.id.stop_record_button);
-        playButton = findViewById(R.id.play_button);
-        audioController = new AudioController();
-        recordButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                audioController.startRecording();
-            }
-        });
-        stopRecordButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                audioController.stopRecording();
-            }
-        });
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                audioController.play();
-            }
-        });
+        initAudioController();
     }
 
     @Override
@@ -167,5 +146,30 @@ public class MainActivity extends Activity {
                 // result of the request.
             }
         }
+    }
+
+    private void initAudioController() {
+        mRecordButton = findViewById(R.id.record_button);
+        mStopRecordButton = findViewById(R.id.stop_record_button);
+        mPlayButton = findViewById(R.id.play_button);
+        mAudioController = new AudioController();
+        mRecordButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mAudioController.startRecording();
+            }
+        });
+        mStopRecordButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mAudioController.stopRecording();
+            }
+        });
+        mPlayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mAudioController.play();
+            }
+        });
     }
 }
