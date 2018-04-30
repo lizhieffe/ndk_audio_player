@@ -24,9 +24,11 @@ public class AudioController {
     private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
 
     private AudioRecord mRecorder = null;
-    private Thread mRecordingThread = null;
     private boolean mIsRecording = false;
     private int mBufferSize;
+
+    private Thread mRecordingThread = null;
+    private Thread mPlaybackThread = null;
 
     private List<Byte> mAudioStore;
 
@@ -76,24 +78,32 @@ public class AudioController {
 
     public void play() {
         Log.i(TAG, "playing recorded audio...");
+        mPlaybackThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                doPlay();
+            }
+        }, "AudioRecorder Playback Thread");
+        mPlaybackThread.start();
+
+    }
+
+    private void doPlay() {
+        Log.i(TAG, "Start playing...");
         int bufferSize = AudioTrack.getMinBufferSize(RECORDER_SAMPLERATE, AudioFormat.CHANNEL_OUT_MONO,
                 RECORDER_AUDIO_ENCODING);
         AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, RECORDER_SAMPLERATE,
                 AudioFormat.CHANNEL_OUT_MONO, RECORDER_AUDIO_ENCODING, bufferSize, AudioTrack.MODE_STREAM);
         audioTrack.play();
 
-        byte[] buffer = new byte[bufferSize];
-        int index = 0;
         while (true) {
             synchronized (this) {
-                if (index < mAudioStore.size()) {
-                    int i = 0;
-                    Arrays.fill(buffer, (byte) 0);
-                    while (index < mAudioStore.size() && i < buffer.length) {
-                        buffer[i++] = mAudioStore.get(index++);
-                    }
-                    audioTrack.write(buffer, 0, buffer.length);
+                byte[] buffer = getAudioNative(bufferSize);
+                if (buffer == null) {
+                    Log.i(TAG, "Finished playing...");
+                    return;
                 }
+                audioTrack.write(buffer, 0, buffer.length);
             }
         }
     }
@@ -146,4 +156,5 @@ public class AudioController {
      * which is packaged with this application.
      */
     public native void recordAudioNative(byte[] bytes);
+    public native byte[] getAudioNative(int size);
 }
