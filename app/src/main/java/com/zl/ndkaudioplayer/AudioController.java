@@ -14,62 +14,43 @@ public class AudioController {
 
     private static final int RECORDER_SAMPLERATE = 44100;
     private static final int RECORDER_CHANNELS = AudioFormat.CHANNEL_IN_MONO;
+    // When changing this format, also change the first param for the read() method of AudioRecord.
     private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
 
-    private int BufferElements2Rec = 1024; // want to play 2048 (2K) since 2 bytes we use only 1024
-    private int BytesPerElement = 2; // 2 bytes in 16bit format
-
-    private int bufferSize;
-    private AudioRecord recorder = null;
-    private Thread recordingThread = null;
-    private boolean isRecording = false;
+    private AudioRecord mRecorder = null;
+    private Thread mRecordingThread = null;
+    private boolean mIsRecording = false;
     private int mBufferSize;
 
     public AudioController() {
         mBufferSize = AudioRecord
-                .getMinBufferSize(RECORDER_SAMPLERATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING);
+                .getMinBufferSize(RECORDER_SAMPLERATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING) * 2;
     }
 
     public void startRecording() {
         Log.i(TAG, "startRecording");
-        if (!isRecording) {
+        if (!mIsRecording) {
             try {
-                recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORDER_SAMPLERATE,
-                        RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING, 2 * mBufferSize);
-                if (recorder.getState() == AudioRecord.STATE_UNINITIALIZED) {
+                mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORDER_SAMPLERATE,
+                        RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING, mBufferSize);
+                if (mRecorder.getState() == AudioRecord.STATE_UNINITIALIZED) {
                     Log.e(TAG, "AudioController.startRecording: cannot init audio record");
                 }
                 Log.d(TAG, "MainActivity.onCreate: starting audio record ...");
-                recorder.startRecording();
+                mRecorder.startRecording();
                 Log.d(TAG, "MainActivity.onCreate: audio record started ...");
             } catch (UnsupportedOperationException e) {
                 Log.e(TAG, "MainActivity.onCreate: ", e);
             }
 
-            isRecording = true;
-            recordingThread = new Thread(new Runnable() {
+            mIsRecording = true;
+            mRecordingThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     fetchAudioData();
                 }
             }, "AudioRecorder Thread");
-            recordingThread.start();
-
-
-
-            // try {
-            //     Log.e(TAG, "MainActivity.maybeStartAudioRecord: 222222");
-            //         MediaRecorder mMediaRecorder = new MediaRecorder();
-            //         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            //         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-            //         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-            //         mMediaRecorder.setOutputFile("/dev/null");
-            //         mMediaRecorder.prepare();
-            //         mMediaRecorder.start();
-            //         Log.e(TAG, "MainActivity.maybeStartAudioRecord: 333333");
-            // } catch (IOException e) {
-            //     Log.e(TAG, "MainActivity.maybeStartAudioRecord: ", e);
-            // }
+            mRecordingThread.start();
         }
     }
 
@@ -83,11 +64,12 @@ public class AudioController {
     }
 
     private void fetchAudioData() {
-        short sData[] = new short[BufferElements2Rec];
-        while (isRecording) {
-            recorder.read(sData, 0, BufferElements2Rec);
+        int shortArraySize = mBufferSize / 2;
+        short sData[] = new short[shortArraySize];
+        while (mIsRecording) {
+            mRecorder.read(sData, 0, shortArraySize);
             byte bData[] = short2byte(sData);
-            Log.i(TAG, "fetchAudioData: fetched audio data");
+            Log.d(TAG, "fetchAudioData: fetched audio data");
         }
     }
 
