@@ -5,8 +5,6 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
 
-import java.io.IOException;
-
 /**
  * Created by lizhieffe on 4/29/18.
  */
@@ -35,49 +33,43 @@ public class AudioController {
     public void startRecording() {
         Log.i(TAG, "startRecording");
         if (!isRecording) {
-            // try {
-            //     recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORDER_SAMPLERATE,
-            //             RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING, 2 * mBufferSize);
-            //     if (recorder.getState() == AudioRecord.STATE_UNINITIALIZED) {
-            //         // Oops looks like it was not initalized correctly
-            //         Log.e(TAG, "AudioController.startRecording: cannot init audio record");
-            //     }
-            //     Log.d(TAG, "MainActivity.onCreate: starting audio record ...");
-            //     recorder.startRecording();
-            //     Log.d(TAG, "MainActivity.onCreate: audio record started ...");
-            // } catch (UnsupportedOperationException e) {
-            //     Log.e(TAG, "MainActivity.onCreate: ", e);
-            // }
-
-            // // recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
-            // //         RECORDER_SAMPLERATE, RECORDER_CHANNELS,
-            // //         RECORDER_AUDIO_ENCODING, BufferElements2Rec * BytesPerElement);
-
-            // // recorder.startRecording();
-            // isRecording = true;
-            // recordingThread = new Thread(new Runnable() {
-            //     @Override
-            //     public void run() {
-            //         fetchAudioData();
-            //     }
-            // }, "AudioRecorder Thread");
-            // recordingThread.start();
-
-
-
             try {
-                Log.e(TAG, "MainActivity.maybeStartAudioRecord: 222222");
-                    MediaRecorder mMediaRecorder = new MediaRecorder();
-                    mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                    mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                    mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-                    mMediaRecorder.setOutputFile("/dev/null");
-                    mMediaRecorder.prepare();
-                    mMediaRecorder.start();
-                    Log.e(TAG, "MainActivity.maybeStartAudioRecord: 333333");
-            } catch (IOException e) {
-                Log.e(TAG, "MainActivity.maybeStartAudioRecord: ", e);
+                recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORDER_SAMPLERATE,
+                        RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING, 2 * mBufferSize);
+                if (recorder.getState() == AudioRecord.STATE_UNINITIALIZED) {
+                    Log.e(TAG, "AudioController.startRecording: cannot init audio record");
+                }
+                Log.d(TAG, "MainActivity.onCreate: starting audio record ...");
+                recorder.startRecording();
+                Log.d(TAG, "MainActivity.onCreate: audio record started ...");
+            } catch (UnsupportedOperationException e) {
+                Log.e(TAG, "MainActivity.onCreate: ", e);
             }
+
+            isRecording = true;
+            recordingThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    fetchAudioData();
+                }
+            }, "AudioRecorder Thread");
+            recordingThread.start();
+
+
+
+            // try {
+            //     Log.e(TAG, "MainActivity.maybeStartAudioRecord: 222222");
+            //         MediaRecorder mMediaRecorder = new MediaRecorder();
+            //         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            //         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            //         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            //         mMediaRecorder.setOutputFile("/dev/null");
+            //         mMediaRecorder.prepare();
+            //         mMediaRecorder.start();
+            //         Log.e(TAG, "MainActivity.maybeStartAudioRecord: 333333");
+            // } catch (IOException e) {
+            //     Log.e(TAG, "MainActivity.maybeStartAudioRecord: ", e);
+            // }
         }
     }
 
