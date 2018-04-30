@@ -112,6 +112,7 @@ public class AudioController {
                 for (int i = 0; i < bData.length; i++) {
                     synchronized (this) {
                         mAudioStore.add(bData[i]);
+                        recordAudioNative(bData);
                     }
                 }
                 Log.d(TAG, "fetchAudioData: fetched audio data");
@@ -135,4 +136,14 @@ public class AudioController {
         }
         return bytes;
     }
+
+    static {
+        System.loadLibrary("audio-recorder-jni");
+    }
+
+    /**
+     * A native method that is implemented by the 'native-lib' native library,
+     * which is packaged with this application.
+     */
+    public native void recordAudioNative(byte[] bytes);
 }
