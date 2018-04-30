@@ -107,6 +107,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
         return JNI_ERR; // JNI version not supported.
     }
 
+    // TODO(lizhi): why no DeleteGlobalRef() for jniHelperClz and jniHelperObj? Is it because the
+    // obj is created in native code?
     jclass  clz = (*env).FindClass("com/zl/ndkaudioplayer/JniHandler");
     g_ctx.jniHelperClz = (jclass)env->NewGlobalRef(clz);
 
@@ -183,6 +185,7 @@ void*  UpdateTicks(void* context) {
         }
         (*env).CallVoidMethod(pctx->mainActivityObj, timerId);
 
+        // Sleep for 1 second.
         gettimeofday(&curTime, NULL);
         timersub(&curTime, &beginTime, &usedTime);
         timersub(&kOneSecond, &usedTime, &leftTime);
@@ -223,7 +226,7 @@ Java_com_zl_ndkaudioplayer_MainActivity_startTicks(JNIEnv *env, jobject instance
     g_ctx.mainActivityClz = (jclass)env->NewGlobalRef(clz);
     g_ctx.mainActivityObj = env->NewGlobalRef(instance);
 
-    int result  = pthread_create( &threadInfo_, &threadAttr_, UpdateTicks, &g_ctx);
+    int result  = pthread_create(&threadInfo_, &threadAttr_, UpdateTicks, &g_ctx);
     assert(result == 0);
 
     pthread_attr_destroy(&threadAttr_);
