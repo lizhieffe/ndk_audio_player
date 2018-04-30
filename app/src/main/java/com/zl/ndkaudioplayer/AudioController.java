@@ -36,11 +36,11 @@ public class AudioController {
                 if (mRecorder.getState() == AudioRecord.STATE_UNINITIALIZED) {
                     Log.e(TAG, "AudioController.startRecording: cannot init audio record");
                 }
-                Log.d(TAG, "MainActivity.onCreate: starting audio record ...");
+                Log.d(TAG, "Starting audio record ...");
                 mRecorder.startRecording();
-                Log.d(TAG, "MainActivity.onCreate: audio record started ...");
+                Log.d(TAG, "Audio record started ...");
             } catch (UnsupportedOperationException e) {
-                Log.e(TAG, "MainActivity.onCreate: ", e);
+                Log.e(TAG, "Error on recording: ", e);
             }
 
             mIsRecording = true;
@@ -56,7 +56,9 @@ public class AudioController {
 
     public void stopRecording() {
         Log.i(TAG, "stopRecording");
-
+        if (mIsRecording) {
+            mIsRecording = false;
+        }
     }
 
     public void play() {
@@ -66,14 +68,25 @@ public class AudioController {
     private void fetchAudioData() {
         int shortArraySize = mBufferSize / 2;
         short sData[] = new short[shortArraySize];
-        while (mIsRecording) {
-            mRecorder.read(sData, 0, shortArraySize);
-            byte bData[] = short2byte(sData);
-            Log.d(TAG, "fetchAudioData: fetched audio data");
+        while (true) {
+            boolean isRecording;
+            synchronized (this) {
+                isRecording = mIsRecording;
+            }
+            if (isRecording) {
+                mRecorder.read(sData, 0, shortArraySize);
+                byte bData[] = short2byte(sData);
+                Log.d(TAG, "fetchAudioData: fetched audio data");
+            } else {
+                Log.i(TAG, "fetchAudioData: Stopping...");
+                mRecorder.stop();
+                mRecorder = null;
+                return;
+            }
         }
     }
 
-    //convert short to byte
+    // Convert short to byte
     private byte[] short2byte(short[] sData) {
         int shortArrsize = sData.length;
         byte[] bytes = new byte[shortArrsize * 2];

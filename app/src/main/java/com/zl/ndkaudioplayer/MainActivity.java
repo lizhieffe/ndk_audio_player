@@ -22,6 +22,7 @@ public class MainActivity extends Activity {
     TextView tickView;
 
     Button recordButton;
+    Button stopRecordButton;
     Button playButton;
 
     AudioController audioController;
@@ -36,12 +37,19 @@ public class MainActivity extends Activity {
         tickView = findViewById(R.id.tick_view);
 
         recordButton = findViewById(R.id.record_button);
+        stopRecordButton = findViewById(R.id.stop_record_button);
         playButton = findViewById(R.id.play_button);
         audioController = new AudioController();
         recordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 audioController.startRecording();
+            }
+        });
+        stopRecordButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                audioController.stopRecording();
             }
         });
         playButton.setOnClickListener(new View.OnClickListener() {
