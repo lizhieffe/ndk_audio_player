@@ -61,9 +61,9 @@ public class ClockController {
         }
     }
 
-    // Used to load the 'hello-jni' library on application startup.
+    // Used to load the 'timer-jni' library on application startup.
     static {
-        System.loadLibrary("hello-jni");
+        System.loadLibrary("timer-jni");
     }
 
     /**
