@@ -7,10 +7,6 @@ import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Created by lizhieffe on 4/29/18.
  */
@@ -30,18 +26,15 @@ public class AudioController {
     private Thread mRecordingThread = null;
     private Thread mPlaybackThread = null;
 
-    // private List<Byte> mAudioStore;
     private AudioTrack mAudioTrack;
 
     public AudioController() {
         mBufferSize = AudioRecord
                 .getMinBufferSize(RECORDER_SAMPLERATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING) * 2;
-        // mAudioStore = new ArrayList<>();
     }
 
     synchronized public void startRecording() {
         Log.i(TAG, "startRecording");
-        // mAudioStore.clear();
 
         if (!mIsRecording) {
             try {
