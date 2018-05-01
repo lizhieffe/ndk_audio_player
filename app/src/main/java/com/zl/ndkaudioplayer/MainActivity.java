@@ -21,7 +21,7 @@ public class MainActivity extends Activity {
     Button mStopRecordButton;
     Button mPlayButton;
 
-    ClockController mClockController;
+    ClockController mTimerController;
     AudioController mAudioController;
 
     @Override
@@ -39,14 +39,14 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         TextView tv = findViewById(R.id.sample_text);
-        tv.setText(mClockController.stringFromJNI());
-        mClockController.startTicks();
+        tv.setText(mTimerController.stringFromJNI());
+        mTimerController.startTicks();
     }
 
     @Override
     public void onPause () {
         super.onPause();
-        mClockController.stopTicks();
+        mTimerController.stopTicks();
     }
 
     @Override
@@ -108,8 +108,8 @@ public class MainActivity extends Activity {
     private void initClockController() {
         tickView = findViewById(R.id.tick_view);
 
-        mClockController = new ClockController();
-        mClockController.addListener(new ClockController.Listener() {
+        mTimerController = new ClockController();
+        mTimerController.addListener(new ClockController.Listener() {
             @Override
             public void onTimeUpdate(final String time) {
                 runOnUiThread(new Runnable() {
