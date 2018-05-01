@@ -2,10 +2,12 @@
 // Created by lizhieffe on 4/30/18.
 //
 
+#include <algorithm>
 #include <android/log.h>
 #include <cstddef>
 #include <jni.h>
 #include <vector>
+
 
 // Android log function wrappers
 static const char* kTAG = "audio-recorder-jni";
@@ -56,14 +58,21 @@ Java_com_zl_ndkaudioplayer_AudioController_getAudioNative(
     return NULL;
   }
 
-  jbyte byteCArray[size];
-  int i;
-  for (i = index_; i < index_ + size && i < recordedAudio_.size(); i++) {
-    byteCArray[i - index_] = recordedAudio_[i];
-  }
-  index_ = i;
-  LOGE("from c played to bytes: %d", index_);
+  // jbyte byteCArray[size];
+  // std::copy_n(recordedAudio_.begin(), size, byteCArray.begin());
+  // int i;
+  // for (i = index_; i < index_ + size && i < recordedAudio_.size(); i++) {
+  //   byteCArray[i - index_] = recordedAudio_[i];
+  // }
+  // index_ = i;
 
-  env->SetByteArrayRegion(byteJavaArray, 0, size, byteCArray);
+
+  // LOGE("from c played to bytes: %d", index_);
+
+  int size_to_copy = std::min(size, (int)recordedAudio_.size() - index_);
+
+  env->SetByteArrayRegion(byteJavaArray, 0, size_to_copy,
+                          recordedAudio_.data() + index_ * sizeof(jbyte));
+  index_ += size_to_copy;
   return byteJavaArray;
 }
