@@ -33,6 +33,8 @@ public class AudioController {
                 .getMinBufferSize(RECORDER_SAMPLERATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING) * 2;
     }
 
+    // TODO: add shutdown method to clean up native memory.
+
     synchronized public void startRecording() {
         Log.i(TAG, "startRecording");
 
@@ -54,9 +56,9 @@ public class AudioController {
             mRecordingThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    fetchAudioData();
+                    recordAudioData();
                 }
-            }, "AudioRecorder Thread");
+            }, "AudioRecorder recording Thread");
             mRecordingThread.start();
         }
     }
@@ -101,7 +103,8 @@ public class AudioController {
         }
     }
 
-    private void fetchAudioData() {
+    private void recordAudioData() {
+        clearNative();
         int shortArraySize = mBufferSize / 2;
         short sData[] = new short[shortArraySize];
         while (true) {
@@ -113,9 +116,9 @@ public class AudioController {
                 mRecorder.read(sData, 0, shortArraySize);
                 byte bData[] = short2byte(sData);
                 recordAudioNative(bData);
-                Log.d(TAG, "fetchAudioData: fetched audio data");
+                Log.d(TAG, "recordAudioData: fetched audio data");
             } else {
-                Log.i(TAG, "fetchAudioData: Stopping...");
+                Log.i(TAG, "recordAudioData: Stopping...");
                 mRecorder.stop();
                 mRecorder = null;
                 return;
@@ -125,9 +128,9 @@ public class AudioController {
 
     // Convert short to byte
     private byte[] short2byte(short[] sData) {
-        int shortArrsize = sData.length;
-        byte[] bytes = new byte[shortArrsize * 2];
-        for (int i = 0; i < shortArrsize; i++) {
+        int shortArraySize = sData.length;
+        byte[] bytes = new byte[shortArraySize * 2];
+        for (int i = 0; i < shortArraySize; i++) {
             bytes[i * 2] = (byte) (sData[i] & 0x00FF);
             bytes[(i * 2) + 1] = (byte) (sData[i] >> 8);
             sData[i] = 0;
@@ -145,4 +148,5 @@ public class AudioController {
      */
     public native void recordAudioNative(byte[] bytes);
     public native byte[] getAudioNative(int size);
+    public native void clearNative();
 }

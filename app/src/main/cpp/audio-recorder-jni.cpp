@@ -1,5 +1,7 @@
 //
 // Created by lizhieffe on 4/30/18.
+// The native functions for audio recording and playback.
+// This is thread compatible.
 //
 
 #include <algorithm>
@@ -30,6 +32,14 @@ int index_;
 
 extern "C"
 JNIEXPORT void JNICALL
+Java_com_zl_ndkaudioplayer_AudioController_clearNative(
+        JNIEnv *env, jobject instance) {
+  index_ = 0;
+  recordedAudio_.clear();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
 Java_com_zl_ndkaudioplayer_AudioController_recordAudioNative(
         JNIEnv *env, jobject instance, jbyteArray byte_array) {
   jsize len = env->GetArrayLength(byte_array);
@@ -38,10 +48,13 @@ Java_com_zl_ndkaudioplayer_AudioController_recordAudioNative(
   for (i = 0; i < len; i++) {
     recordedAudio_.push_back(body[i]);
   }
-  LOGE("from c total recorded audio bytes: %d", recordedAudio_.size());
   env->ReleaseByteArrayElements(byte_array, body, 0);
 }
 
+// Returns the audio data of at most |size| bytes. A pin is used internally
+// to remember how much data has been returned to the caller by calling
+// this method before, and the returned data starts from the pin. The pin
+// is reset iff the data is cleared or there is a new recording.
 extern "C"
 JNIEXPORT jbyteArray JNICALL
 Java_com_zl_ndkaudioplayer_AudioController_getAudioNative(
@@ -57,17 +70,6 @@ Java_com_zl_ndkaudioplayer_AudioController_getAudioNative(
   if (index_ >= recordedAudio_.size()) {
     return NULL;
   }
-
-  // jbyte byteCArray[size];
-  // std::copy_n(recordedAudio_.begin(), size, byteCArray.begin());
-  // int i;
-  // for (i = index_; i < index_ + size && i < recordedAudio_.size(); i++) {
-  //   byteCArray[i - index_] = recordedAudio_[i];
-  // }
-  // index_ = i;
-
-
-  // LOGE("from c played to bytes: %d", index_);
 
   int size_to_copy = std::min(size, (int)recordedAudio_.size() - index_);
 
