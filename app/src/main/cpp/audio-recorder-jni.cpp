@@ -4,6 +4,7 @@
 // This is thread compatible.
 //
 
+#include <aaudio/AAudio.h>
 #include <algorithm>
 #include <android/log.h>
 #include <cstddef>
