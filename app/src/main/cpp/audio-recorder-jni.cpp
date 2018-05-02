@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <jni.h>
 #include <vector>
+#include <assert.h>
 
 
 // Android log function wrappers
@@ -79,3 +80,47 @@ Java_com_zl_ndkaudioplayer_AudioController_getAudioNative(
   index_ += size_to_copy;
   return byteJavaArray;
 }
+
+class AudioRecorder {
+public:
+  bool Init() {
+    aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+    // TODO: create the result using better value.
+    if (result != 0) {
+      return false;
+    }
+    AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_INPUT);
+    AAudioStreamBuilder_setSampleRate(builder, 44100);
+    AAudioStreamBuilder_setChannelCount(builder, 1);
+    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_I16);
+    AAudioStreamBuilder_setBufferCapacityInFrames(builder, 3000);
+    return true;
+  }
+
+  bool Record() {
+    AAudioStream *stream;
+    aaudio_result_t result = AAudioStreamBuilder_openStream(builder, &stream);
+    // TODO: create the result using better value.
+    if (result != 0) {
+      return false;
+    }
+
+    assert(AAUDIO_DIRECTION_INPUT == AAudioStream_getDirection(stream));
+    assert(44100 == AAudioStream_getSampleRate(stream));
+    assert(1 == AAudioStream_getChannelCount(stream));
+    assert(AAUDIO_FORMAT_PCM_I16 == AAudioStream_getFormat(stream));
+
+    // TODO: if the builder is to be reused in the future, don't delete.
+    AAudioStreamBuilder_delete(builder);
+
+    result = AAudioStream_requestStart(stream);
+    // TODO: create the result using better value.
+    if (result != 0) {
+      return false;
+    }
+
+    return true;
+  }
+ private:
+  AAudioStreamBuilder *builder;
+};
